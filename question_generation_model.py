@@ -29,6 +29,7 @@ from io import BytesIO
 from numpy import array
 import numpy as np
 import tensorflow
+print("Tensorflow version: " + tensorflow.__version__)
 
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LambdaCallback
@@ -135,7 +136,8 @@ class QuestionGenerationModel:
         model.layers[2].trainable = False
 
         model.summary()
-        optimizer = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        optimizer = Adam()
+        # optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, amsgrad=False)
         # optimizer = SGD()
 
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
@@ -186,7 +188,8 @@ class QuestionGenerationModel:
         model.layers[4].trainable = False
 
         model.summary()
-        optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        optimizer = Adam()
+        # optimizer = Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
         # optimizer = SGD()
 
         #TODO: try different optimizer?
@@ -230,7 +233,8 @@ class QuestionGenerationModel:
         model = Model(inputs=[inputs1, inputs2], outputs=outputs)
 
         model.summary()
-        optimizer = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        optimizer = Adam()
+        # optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
         #TODO: try different optimizer?
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
         self.logger.info('Elmo model succesfully built')
@@ -270,7 +274,8 @@ class QuestionGenerationModel:
         model = Model(inputs=[inputs1, in_id, in_mask, in_segment], outputs=outputs)
 
         model.summary()
-        optimizer = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        optimizer = Adam()
+        # optimizer = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
@@ -300,7 +305,7 @@ class QuestionGenerationModel:
         """
 
         if 'glove' in self.datasets.embedding_file:
-            max_seq_len = model.inputs[1].shape[1].value
+            max_seq_len = 25
         elif 'elmo' in self.datasets.embedding_file:
             max_seq_len = self.datasets.max_question_len
             image_input = np.repeat(image_input, axis=0, repeats=2)
@@ -756,7 +761,7 @@ class QuestionGenerationModel:
         model_bucket_name = 'experimental_models'
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2000)
         filepath = os.path.join(model_dir, "model_{epoch:02d}.h5")
-        checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+        checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto')
         steps = int(len(self.datasets.train_image_id_questions_dict) // batch_size)
         val_steps = int(len(self.datasets.dev_image_id_questions_dict) // batch_size)
         self.logger.info('Train steps %s' % steps)
@@ -782,6 +787,10 @@ class QuestionGenerationModel:
             self.logger.info('\n'*5)
             self.logger.info(no_epoch)
             x_train, y_train = next(generator)
+            # for i in range(0, 57):
+            #     x_train[0][i] = [0 if v is None else v for v in x_train[0][i]]
+            #     x_train[1][i] = [0 if v is None else v for v in x_train[1][i]]
+            #     y_train[i] = [0 if v is None else v for v in y_train[i]]
             history = model.fit(x_train, y_train,
                                           epochs=1,
                                           verbose=2)

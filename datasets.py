@@ -359,7 +359,7 @@ class Datasets:
         keyword_list = []
 
         i = 0
-        with open(self.train_file, 'r') as file:
+        with open(self.train_file, 'r', encoding="utf-8") as file:
             # skip the file line of the file as header
             file.readline()
             for line in file:
@@ -375,7 +375,7 @@ class Datasets:
 
         if self.build_vocab_dev:
             i = 0
-            with open(self.validation_file, 'r') as file:
+            with open(self.validation_file, 'r', encoding='utf-8') as file:
                 # skip the file line of the file as header
                 file.readline()
                 for line in file:

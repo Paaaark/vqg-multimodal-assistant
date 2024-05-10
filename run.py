@@ -12,7 +12,7 @@ from datasets import Datasets
 from question_generation_model import QuestionGenerationModel
 
 from commons_pkg.commons_utils import load_config
-from evaluation_pkg.evaluate import run_evaluation
+# from evaluation_pkg.evaluate import run_evaluation
 from pprint import pprint
 import argparse
 import csv
@@ -216,6 +216,13 @@ if __name__ == "__main__":
         # tensorflow.tables_initializer()
         # K.set_session(sess)
         # Train the model
+        print("Debugging...")
+        print(model)
+        print(args.model_dir)
+        print(epoch)
+        print(batch_size)
+        print(decoder_algorithm)
+        print(beam_size)
         last_epoch = question_generator.train_model(model,
                                        args.model_dir,
                                        epoch=epoch,
@@ -227,6 +234,7 @@ if __name__ == "__main__":
     # Perform inference
     path = os.path.join(args.model_dir, model_file_name)
     if not os.path.exists(path):
+        print(path)
         logger.info('Download {} file. Inference not possible'.format(model_file_name))
         exit(0)
     else:
@@ -235,16 +243,16 @@ if __name__ == "__main__":
     if 'glov' in datasets.embedding_file:
         new_model = tensorflow.keras.models.load_model(path)
         new_model.load_weights(path)
-        initialize_vars(sess)
+        # initialize_vars(sess)
     elif 'elmo' in datasets.embedding_file:
         K.set_session(sess)
         new_model = tensorflow.keras.models.load_model(path)
         new_model.load_weights(path)
-        initialize_vars(sess)
+        # initialize_vars(sess)
     else:
         new_model = load_model(question_generator)
         new_model.load_weights(path)
-        initialize_vars(sess)
+        # initialize_vars(sess)
 
     logger.info('Model {} loaded'.format(model_file_name))
     new_model.summary()
@@ -264,36 +272,36 @@ if __name__ == "__main__":
             for id, test_image_url in datasets.test_image_id_url_dict.items():
                 i = i + 1
 
-                try:
-                    if user_input == 'YES':
-                        test_image_url = input("Provide the url of the image: ")
-                        # test_image_url =
-                        # 'https://vision.ece.vt.edu/data/mscoco/images/train2014/./COCO_train2014_000000314392.jpg'
-                        output_questions = question_generator.test_model(test_image_url, new_model,
-                                                                         decoder_algorithm, beam_size)
+                # try:
+                if user_input == 'YES':
+                    test_image_url = input("Provide the url of the image: ")
+                    # test_image_url =
+                    # 'https://vision.ece.vt.edu/data/mscoco/images/train2014/./COCO_train2014_000000314392.jpg'
+                    output_questions = question_generator.test_model(test_image_url, new_model,
+                                                                        decoder_algorithm, beam_size)
+                else:
+                    logger.info('\n\n\nImage url: %s' % test_image_url)
+                    if id in datasets.test_image_id_keyword_dict:
+                        keyword = datasets.test_image_id_keyword_dict[id]
                     else:
-                        logger.info('\n\n\nImage url: %s' % test_image_url)
-                        if id in datasets.test_image_id_keyword_dict:
-                            keyword = datasets.test_image_id_keyword_dict[id]
-                        else:
-                            keyword = None
-                        output_questions = question_generator.test_model(test_image_url, new_model,
-                                                                         decoder_algorithm, beam_size, keyword)
-                        file_writer.writerow([i, test_image_url, '---'.join(output_questions)])
+                        keyword = None
+                    output_questions = question_generator.test_model(test_image_url, new_model,
+                                                                        decoder_algorithm, beam_size, keyword)
+                    file_writer.writerow([i, test_image_url, '---'.join(output_questions)])
 
-                        gt_questions = datasets.test_image_id_questions_dict[id]
-                        ground_truth = []
-                        for question in gt_questions:
-                            gt = question.split()[1:-1]
-                            gt = ' '.join(gt)
-                            if gt in ['None', 'none']:
-                                continue
-                            ground_truth.append(gt)
-                        logger.info('GT  ---->%s' % ground_truth)
-                        gt_file_writer.writerow([i, '---'.join(ground_truth)])
-                except:
-                    logger.error('%s has inference issues. Most likely doesnt exist' % test_image_url)
-                    continue
+                    gt_questions = datasets.test_image_id_questions_dict[id]
+                    ground_truth = []
+                    for question in gt_questions:
+                        gt = question.split()[1:-1]
+                        gt = ' '.join(gt)
+                        if gt in ['None', 'none']:
+                            continue
+                        ground_truth.append(gt)
+                    logger.info('GT  ---->%s' % ground_truth)
+                    gt_file_writer.writerow([i, '---'.join(ground_truth)])
+                # except:
+                #     logger.error('%s has inference issues. Most likely doesnt exist' % test_image_url)
+                #     continue
 
                 # Generative strength:
                 # No of unique questions averaged over number of images
@@ -318,7 +326,7 @@ if __name__ == "__main__":
     prediction_file_path = "{}/result_{}_test_all.csv".format(args.model_dir, dataset)
     ground_truth_file_path = "{}/gt_{}_test_all.csv".format(args.model_dir, dataset)
     logger.info("Running evaluation script on prediction %s and gt %s file" % (prediction_file_path, ground_truth_file_path))
-    run_evaluation(prediction_file_path, ground_truth_file_path)
+    # run_evaluation(prediction_file_path, ground_truth_file_path)
 
 
 
